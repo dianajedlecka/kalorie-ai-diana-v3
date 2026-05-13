@@ -1,6 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const MEALS = ["Śniadanie", "Drugie śniadanie", "Obiad", "Podwieczorek", "Kolacja"];
+const MEALS = [
+  { name: "Śniadanie", icon: "🍳" },
+  { name: "Drugie śniadanie", icon: "🥪" },
+  { name: "Obiad", icon: "🍲" },
+  { name: "Podwieczorek", icon: "☕" },
+  { name: "Kolacja", icon: "🥗" },
+];
 
 function getDateKey(date = new Date()) {
   return date.toISOString().slice(0, 10);
@@ -8,7 +14,7 @@ function getDateKey(date = new Date()) {
 
 function formatDate(dateKey) {
   return new Date(dateKey + "T12:00:00").toLocaleDateString("pl-PL", {
-    weekday: "long",
+    weekday: "short",
     day: "2-digit",
     month: "2-digit",
   });
@@ -37,22 +43,29 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState(getDateKey());
   const [editingMeal, setEditingMeal] = useState(null);
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
-    const savedMeals = localStorage.getItem("dianaPremiumMeals");
-    const savedGoal = localStorage.getItem("dianaPremiumGoal");
+    const savedMeals = localStorage.getItem("dianaPremiumMealsFinal");
+    const savedGoal = localStorage.getItem("dianaPremiumGoalFinal");
+    const savedTheme = localStorage.getItem("dianaPremiumDarkMode");
 
     if (savedMeals) setMeals(JSON.parse(savedMeals));
     if (savedGoal) setGoal(Number(savedGoal));
+    if (savedTheme) setDarkMode(savedTheme === "true");
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("dianaPremiumMeals", JSON.stringify(meals));
+    localStorage.setItem("dianaPremiumMealsFinal", JSON.stringify(meals));
   }, [meals]);
 
   useEffect(() => {
-    localStorage.setItem("dianaPremiumGoal", String(goal));
+    localStorage.setItem("dianaPremiumGoalFinal", String(goal));
   }, [goal]);
+
+  useEffect(() => {
+    localStorage.setItem("dianaPremiumDarkMode", String(darkMode));
+  }, [darkMode]);
 
   const selectedMeals = meals.filter((m) => m.date === selectedDate);
 
@@ -64,36 +77,30 @@ export default function App() {
         carbs: sum.carbs + Number(meal.carbs || 0),
         fat: sum.fat + Number(meal.fat || 0),
         fiber: sum.fiber + Number(meal.fiber || 0),
-        sugar: sum.sugar + Number(meal.sugar || 0),
       }),
-      { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0 }
+      { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 }
     );
   }, [selectedMeals]);
 
+  const weekDays = getLast7Days();
   const left = Math.max(goal - totals.kcal, 0);
   const progress = Math.min((totals.kcal / goal) * 100, 100);
-  const weekDays = getLast7Days();
 
-  const weekData = weekDays.map((day) => {
-    const sum = meals
+  const weekData = weekDays.map((day) => ({
+    day,
+    kcal: meals
       .filter((m) => m.date === day)
-      .reduce((acc, m) => acc + Number(m.kcal || 0), 0);
-
-    return {
-      day,
-      kcal: sum,
-      label: new Date(day + "T12:00:00").toLocaleDateString("pl-PL", {
-        weekday: "short",
-      }),
-    };
-  });
+      .reduce((s, m) => s + Number(m.kcal || 0), 0),
+    label: new Date(day + "T12:00:00").toLocaleDateString("pl-PL", {
+      weekday: "short",
+    }),
+  }));
 
   const maxWeekKcal = Math.max(...weekData.map((d) => d.kcal), goal, 1);
 
   function handleImage(e) {
     const file = e.target.files[0];
     if (!file) return;
-
     setImageFile(file);
     setPreview(URL.createObjectURL(file));
     setAnalysis(null);
@@ -102,7 +109,6 @@ export default function App() {
   function fileToBase64(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-
       reader.onload = () => resolve(reader.result);
       reader.onerror = reject;
       reader.readAsDataURL(file);
@@ -128,19 +134,18 @@ export default function App() {
 
       const response = await fetch("/api/analyze-food", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          mode,
-          image,
-          manualText,
-          gramsText: weight,
-          mealType
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode, image, manualText, gramsText: weight, mealType }),
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      let data;
+
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("AI zwróciło pustą albo błędną odpowiedź.");
+      }
 
       if (!response.ok) {
         alert("Błąd: " + (data.error || "AI nie odpowiedziało"));
@@ -170,9 +175,7 @@ export default function App() {
       carbs: Number(analysis.carbs || 0),
       fat: Number(analysis.fat || 0),
       fiber: Number(analysis.fiber || 0),
-      sugar: Number(analysis.sugar || 0),
       ingredients: analysis.ingredients || [],
-      note: analysis.note || "Wynik jest szacunkowy."
     };
 
     setMeals((prev) => [item, ...prev]);
@@ -187,13 +190,7 @@ export default function App() {
   }
 
   function duplicateMeal(meal) {
-    const copy = {
-      ...meal,
-      id: Date.now(),
-      date: selectedDate,
-    };
-
-    setMeals((prev) => [copy, ...prev]);
+    setMeals((prev) => [{ ...meal, id: Date.now(), date: selectedDate }, ...prev]);
   }
 
   function saveEdit() {
@@ -201,141 +198,76 @@ export default function App() {
       prev.map((meal) =>
         meal.id === editingMeal.id
           ? {
-              ...meal,
               ...editingMeal,
               kcal: Number(editingMeal.kcal || 0),
               protein: Number(editingMeal.protein || 0),
               carbs: Number(editingMeal.carbs || 0),
               fat: Number(editingMeal.fat || 0),
               fiber: Number(editingMeal.fiber || 0),
-              sugar: Number(editingMeal.sugar || 0),
             }
           : meal
       )
     );
-
     setEditingMeal(null);
   }
 
-  function clearDay() {
-    if (!window.confirm("Usunąć posiłki z wybranego dnia?")) return;
-    setMeals((prev) => prev.filter((meal) => meal.date !== selectedDate));
+  function copyYesterdayMeals() {
+    const d = new Date(selectedDate + "T12:00:00");
+    d.setDate(d.getDate() - 1);
+    const yesterday = getDateKey(d);
+
+    const yesterdayMeals = meals.filter((m) => m.date === yesterday);
+
+    if (yesterdayMeals.length === 0) {
+      alert("Nie ma posiłków z poprzedniego dnia.");
+      return;
+    }
+
+    const copied = yesterdayMeals.map((m) => ({
+      ...m,
+      id: Date.now() + Math.random(),
+      date: selectedDate,
+    }));
+
+    setMeals((prev) => [...copied, ...prev]);
   }
 
   return (
     <>
       <style>{css}</style>
 
-      <main className="page">
-        <section className="topbar">
+      <main className={darkMode ? "page dark" : "page"}>
+        <section className="hero">
           <div>
-            <div className="eyebrow">AI CALORIE TRACKER</div>
-            <h1>Kalorie AI Diana PRO</h1>
-            <p>
-              Profesjonalny dziennik żywieniowy z analizą zdjęć, gramaturą,
-              makro, historią dni i wykresami.
-            </p>
-          </div>
-
-          <div className="topScore">
-            <span>{formatDate(selectedDate)}</span>
-            <strong>{Math.round(totals.kcal)}</strong>
-            <small>kcal</small>
-          </div>
-        </section>
-
-        <section className="datePanel">
-          <h2>Historia dni</h2>
-
-          <div className="dateChips">
-            {weekDays.map((day) => (
-              <button
-                key={day}
-                className={selectedDate === day ? "selected" : ""}
-                onClick={() => setSelectedDate(day)}
-              >
-                <span>{formatDate(day).split(",")[0]}</span>
-                <b>
-                  {meals
-                    .filter((m) => m.date === day)
-                    .reduce((s, m) => s + Number(m.kcal || 0), 0)}{" "}
-                  kcal
-                </b>
+            <div className="topLine">
+              <span>AI CALORIE TRACKER</span>
+              <button onClick={() => setDarkMode(!darkMode)}>
+                {darkMode ? "☀️ Jasny" : "🌙 Ciemny"}
               </button>
-            ))}
+            </div>
+            <h1>Kalorie AI Diana PRO</h1>
+            <p>Zdjęcia posiłków, gramatura, makro, historia i wykresy — w wersji mobile premium.</p>
+          </div>
+
+          <div className="ring">
+            <div>{Math.round(totals.kcal)}</div>
+            <span>kcal</span>
           </div>
         </section>
 
-        <section className="dashboard">
-          <div className="goalCard">
-            <div className="goalTop">
-              <div>
-                <span className="muted">Cel dzienny</span>
-                <div className="goalInputRow">
-                  <input
-                    value={goal}
-                    onChange={(e) => setGoal(Number(e.target.value || 0))}
-                  />
-                  <b>kcal</b>
-                </div>
-              </div>
-
-              <div className="leftBox">
-                <span>Zostało</span>
-                <strong>{Math.round(left)} kcal</strong>
-              </div>
-            </div>
-
-            <div className="progress">
-              <div style={{ width: `${progress}%` }} />
-            </div>
-
-            <div className="macroGrid">
-              <Macro label="Białko" value={totals.protein} />
-              <Macro label="Węglowodany" value={totals.carbs} />
-              <Macro label="Tłuszcze" value={totals.fat} />
-              <Macro label="Błonnik" value={totals.fiber} />
-            </div>
-          </div>
-        </section>
-
-        <section className="chartsGrid">
-          <div className="chartCard">
-            <h2>Makroskładniki</h2>
-            <MacroChart protein={totals.protein} carbs={totals.carbs} fat={totals.fat} />
-          </div>
-
-          <div className="chartCard">
-            <h2>Kalorie z 7 dni</h2>
-            <WeekChart data={weekData} max={maxWeekKcal} />
-          </div>
-        </section>
-
-        <section className="panel">
-          <div className="panelHeader">
+        <section className="addPanel">
+          <div className="sectionHead">
             <div>
               <h2>Dodaj posiłek</h2>
-              <p>Najpierw rozpoznaj AI, potem zapisz do dziennika.</p>
+              <p>Rozpoznaj zdjęcie AI albo policz ręcznie.</p>
             </div>
           </div>
 
           <div className="modeSwitch">
-            <button
-              className={mode === "photo" ? "active" : ""}
-              onClick={() => {
-                setMode("photo");
-                setAnalysis(null);
-              }}
-            >
+            <button className={mode === "photo" ? "active" : ""} onClick={() => setMode("photo")}>
               Dodaj zdjęcie
             </button>
-            <button
-              className={mode === "manual" ? "active" : ""}
-              onClick={() => {
-                setMode("manual");
-                setAnalysis(null);
-              }}
-            >
+            <button className={mode === "manual" ? "active" : ""} onClick={() => setMode("manual")}>
               Policz ręcznie
             </button>
           </div>
@@ -343,12 +275,9 @@ export default function App() {
           <div className="formGrid">
             <label>
               <span>Posiłek</span>
-              <select
-                value={mealType}
-                onChange={(e) => setMealType(e.target.value)}
-              >
+              <select value={mealType} onChange={(e) => setMealType(e.target.value)}>
                 {MEALS.map((meal) => (
-                  <option key={meal}>{meal}</option>
+                  <option key={meal.name}>{meal.name}</option>
                 ))}
               </select>
             </label>
@@ -356,11 +285,7 @@ export default function App() {
             <label>
               <span>Waga porcji</span>
               <div className="weightInput">
-                <input
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                  placeholder="np. 250"
-                />
+                <input value={weight} onChange={(e) => setWeight(e.target.value)} />
                 <b>g</b>
               </div>
             </label>
@@ -372,7 +297,7 @@ export default function App() {
                 <img src={preview} alt="Podgląd potrawy" />
               ) : (
                 <div className="uploadInner">
-                  <div className="foodIcon">🥕🍎</div>
+                  <div>🥕🍎</div>
                   <strong>Dodaj zdjęcie potrawy</strong>
                   <span>AI rozpozna składniki, kcal i makro</span>
                 </div>
@@ -383,83 +308,132 @@ export default function App() {
             <textarea
               value={manualText}
               onChange={(e) => setManualText(e.target.value)}
-              placeholder="Np. 2 ziemniaki, 150 g kurczaka, 3 marchewki, łyżka oliwy..."
+              placeholder="Np. 2 ziemniaki, 150 g kurczaka, 3 marchewki..."
             />
           )}
 
-          <button className="primaryBtn" onClick={analyzeFood} disabled={loading}>
-            {loading ? "Analizuję posiłek..." : "Rozpoznaj AI"}
+          <button className="aiBtn" onClick={analyzeFood} disabled={loading}>
+            {loading ? "Analizuję posiłek..." : "✨ Rozpoznaj posiłek AI"}
           </button>
 
           {analysis && (
-            <section className="analysisCard">
-              <div className="analysisTop">
-                <div>
-                  <span className="muted">Wynik analizy</span>
-                  <h3>{analysis.name || "Rozpoznany posiłek"}</h3>
-                  <p>{analysis.description}</p>
-                </div>
-
-                <div className="analysisKcal">
-                  <strong>{Math.round(analysis.kcal || 0)}</strong>
-                  <span>kcal</span>
-                </div>
+            <div className="analysisCard">
+              <div>
+                <span>Wynik AI</span>
+                <h3>{analysis.name || "Rozpoznany posiłek"}</h3>
+                <p>{analysis.description}</p>
               </div>
 
-              <div className="analysisMacros">
-                <span>Białko: {Math.round(analysis.protein || 0)} g</span>
-                <span>Węgle: {Math.round(analysis.carbs || 0)} g</span>
-                <span>Tłuszcze: {Math.round(analysis.fat || 0)} g</span>
+              <div className="analysisKcal">
+                <b>{Math.round(analysis.kcal || 0)}</b>
+                <small>kcal</small>
               </div>
 
-              {analysis.ingredients?.length > 0 && (
-                <div className="ingredients">
-                  <h4>Składniki</h4>
-                  {analysis.ingredients.map((item, index) => (
-                    <div key={index}>
-                      <span>
-                        {item.name} {item.amount ? `— ${item.amount}` : ""}
-                      </span>
-                      <b>{Math.round(item.kcal || 0)} kcal</b>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div className="miniMacros">
+                <span>B {Math.round(analysis.protein || 0)} g</span>
+                <span>W {Math.round(analysis.carbs || 0)} g</span>
+                <span>T {Math.round(analysis.fat || 0)} g</span>
+              </div>
 
               <button className="saveBtn" onClick={addToDiary}>
                 Dodaj do dziennika
               </button>
-            </section>
+            </div>
           )}
         </section>
 
+        <section className="summary">
+          <div className="dateScroller">
+            {weekDays.map((day) => {
+              const kcal = meals
+                .filter((m) => m.date === day)
+                .reduce((s, m) => s + Number(m.kcal || 0), 0);
+
+              return (
+                <button
+                  key={day}
+                  className={selectedDate === day ? "selected" : ""}
+                  onClick={() => setSelectedDate(day)}
+                >
+                  <span>{formatDate(day)}</span>
+                  <b>{Math.round(kcal)} kcal</b>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="goalCard">
+            <div>
+              <span>Cel dzienny</span>
+              <div className="goalInput">
+                <input value={goal} onChange={(e) => setGoal(Number(e.target.value || 0))} />
+                <b>kcal</b>
+              </div>
+            </div>
+
+            <div className="leftBox">
+              <span>Zostało</span>
+              <b>{Math.round(left)} kcal</b>
+            </div>
+
+            <div className="progress">
+              <div style={{ width: `${progress}%` }} />
+            </div>
+          </div>
+
+          <div className="macroGrid">
+            <Macro icon="💪" label="Białko" value={totals.protein} />
+            <Macro icon="🌾" label="Węgle" value={totals.carbs} />
+            <Macro icon="🥑" label="Tłuszcze" value={totals.fat} />
+            <Macro icon="🥬" label="Błonnik" value={totals.fiber} />
+          </div>
+        </section>
+
+        <section className="charts">
+          <div className="chartCard">
+            <h3>Makro</h3>
+            <MacroChart protein={totals.protein} carbs={totals.carbs} fat={totals.fat} />
+          </div>
+
+          <div className="chartCard">
+            <h3>7 dni</h3>
+            <WeekChart data={weekData} max={maxWeekKcal} />
+          </div>
+        </section>
+
+        <button className="copyBtn" onClick={copyYesterdayMeals}>
+          Skopiuj posiłki z wczoraj
+        </button>
+
         <section className="mealGrid">
           {MEALS.map((meal) => {
-            const list = selectedMeals.filter((item) => item.mealType === meal);
+            const list = selectedMeals.filter((item) => item.mealType === meal.name);
             const kcal = list.reduce((sum, item) => sum + Number(item.kcal || 0), 0);
 
             return (
-              <div className="mealCard" key={meal}>
-                <div className="mealHead">
-                  <h3>{meal}</h3>
-                  <strong>{Math.round(kcal)} kcal</strong>
+              <div className="mealCard" key={meal.name}>
+                <div className="mealTop">
+                  <div>
+                    <span className="mealIcon">{meal.icon}</span>
+                    <h3>{meal.name}</h3>
+                  </div>
+                  <b>{Math.round(kcal)} kcal</b>
                 </div>
 
                 {list.length === 0 ? (
-                  <p className="empty">Brak dodanych produktów.</p>
+                  <div className="emptyMeal">
+                    <p>Dodaj pierwszy produkt</p>
+                  </div>
                 ) : (
                   list.map((item) => (
                     <div className="foodItem" key={item.id}>
                       {item.image && <img src={item.image} alt="" />}
-
                       <div>
                         <b>{item.name}</b>
                         <p>{item.description}</p>
                         <small>
-                          {Math.round(item.kcal)} kcal · B{" "}
-                          {Math.round(item.protein)}g · W{" "}
-                          {Math.round(item.carbs)}g · T{" "}
-                          {Math.round(item.fat)}g
+                          {Math.round(item.kcal)} kcal · B {Math.round(item.protein)}g · W{" "}
+                          {Math.round(item.carbs)}g · T {Math.round(item.fat)}g
                         </small>
 
                         <div className="itemActions">
@@ -476,74 +450,42 @@ export default function App() {
           })}
         </section>
 
-        <button className="clearBtn" onClick={clearDay}>
-          Wyczyść wybrany dzień
-        </button>
-
         {editingMeal && (
           <div className="modalOverlay">
             <div className="modal">
               <h2>Edytuj posiłek</h2>
 
-              <label>
-                <span>Nazwa</span>
-                <input
-                  value={editingMeal.name}
-                  onChange={(e) =>
-                    setEditingMeal({ ...editingMeal, name: e.target.value })
-                  }
-                />
-              </label>
-
-              <label>
-                <span>Kalorie</span>
-                <input
-                  type="number"
-                  value={editingMeal.kcal}
-                  onChange={(e) =>
-                    setEditingMeal({ ...editingMeal, kcal: e.target.value })
-                  }
-                />
-              </label>
+              <input
+                value={editingMeal.name}
+                onChange={(e) => setEditingMeal({ ...editingMeal, name: e.target.value })}
+              />
+              <input
+                type="number"
+                value={editingMeal.kcal}
+                onChange={(e) => setEditingMeal({ ...editingMeal, kcal: e.target.value })}
+              />
 
               <div className="modalGrid">
-                <label>
-                  <span>Białko</span>
-                  <input
-                    type="number"
-                    value={editingMeal.protein}
-                    onChange={(e) =>
-                      setEditingMeal({ ...editingMeal, protein: e.target.value })
-                    }
-                  />
-                </label>
-
-                <label>
-                  <span>Węgle</span>
-                  <input
-                    type="number"
-                    value={editingMeal.carbs}
-                    onChange={(e) =>
-                      setEditingMeal({ ...editingMeal, carbs: e.target.value })
-                    }
-                  />
-                </label>
-
-                <label>
-                  <span>Tłuszcze</span>
-                  <input
-                    type="number"
-                    value={editingMeal.fat}
-                    onChange={(e) =>
-                      setEditingMeal({ ...editingMeal, fat: e.target.value })
-                    }
-                  />
-                </label>
+                <input
+                  type="number"
+                  value={editingMeal.protein}
+                  onChange={(e) => setEditingMeal({ ...editingMeal, protein: e.target.value })}
+                />
+                <input
+                  type="number"
+                  value={editingMeal.carbs}
+                  onChange={(e) => setEditingMeal({ ...editingMeal, carbs: e.target.value })}
+                />
+                <input
+                  type="number"
+                  value={editingMeal.fat}
+                  onChange={(e) => setEditingMeal({ ...editingMeal, fat: e.target.value })}
+                />
               </div>
 
               <div className="modalButtons">
                 <button onClick={() => setEditingMeal(null)}>Anuluj</button>
-                <button onClick={saveEdit}>Zapisz zmiany</button>
+                <button onClick={saveEdit}>Zapisz</button>
               </div>
             </div>
           </div>
@@ -553,11 +495,12 @@ export default function App() {
   );
 }
 
-function Macro({ label, value }) {
+function Macro({ icon, label, value }) {
   return (
     <div className="macro">
-      <span>{label}</span>
-      <strong>{Math.round(value)} g</strong>
+      <span>{icon}</span>
+      <p>{label}</p>
+      <b>{Math.round(value)} g</b>
     </div>
   );
 }
@@ -565,32 +508,23 @@ function Macro({ label, value }) {
 function MacroChart({ protein, carbs, fat }) {
   const total = Number(protein || 0) + Number(carbs || 0) + Number(fat || 0);
 
-  if (total <= 0) {
-    return <p className="empty">Dodaj posiłek, aby zobaczyć wykres makro.</p>;
-  }
+  if (total <= 0) return <p className="emptyText">Dodaj posiłek, aby zobaczyć wykres.</p>;
 
   const proteinDeg = (protein / total) * 360;
   const carbsDeg = (carbs / total) * 360;
   const fatDeg = (fat / total) * 360;
 
-  const chartStyle = {
-    background: `conic-gradient(
-      #0b4a32 0deg ${proteinDeg}deg,
-      #79a85a ${proteinDeg}deg ${proteinDeg + carbsDeg}deg,
-      #d7a94b ${proteinDeg + carbsDeg}deg ${proteinDeg + carbsDeg + fatDeg}deg
-    )`
-  };
-
   return (
-    <div className="macroChartWrap">
-      <div className="donut" style={chartStyle}>
+    <div className="donutWrap">
+      <div
+        className="donut"
+        style={{
+          background: `conic-gradient(#06452f 0deg ${proteinDeg}deg, #74a95b ${proteinDeg}deg ${
+            proteinDeg + carbsDeg
+          }deg, #d9a84e ${proteinDeg + carbsDeg}deg ${proteinDeg + carbsDeg + fatDeg}deg)`,
+        }}
+      >
         <div>{Math.round(total)}g</div>
-      </div>
-
-      <div className="legend">
-        <span><b className="dot protein"></b>Białko</span>
-        <span><b className="dot carbs"></b>Węgle</span>
-        <span><b className="dot fat"></b>Tłuszcze</span>
       </div>
     </div>
   );
@@ -600,16 +534,16 @@ function WeekChart({ data, max }) {
   return (
     <div className="weekChart">
       {data.map((item) => {
-        const height = Math.max((item.kcal / max) * 100, item.kcal > 0 ? 8 : 2);
+        const height = Math.max((item.kcal / max) * 100, item.kcal ? 10 : 3);
 
         return (
-          <button className="barWrap" key={item.day} title={`${item.kcal} kcal`}>
+          <div className="barWrap" key={item.day}>
             <div className="barArea">
-              <div className="bar" style={{ height: `${height}%` }}></div>
+              <div className="bar" style={{ height: `${height}%` }} />
             </div>
             <span>{item.label}</span>
             <small>{Math.round(item.kcal)}</small>
-          </button>
+          </div>
         );
       })}
     </div>
@@ -617,397 +551,173 @@ function WeekChart({ data, max }) {
 }
 
 const css = `
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
-  background: #eef4ef;
-  color: #10291c;
+  background: #edf5ee;
+  color: #0d281b;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
 }
 
 .page {
-  max-width: 1120px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 22px;
+  padding: 14px;
+  min-height: 100vh;
 }
 
-.topbar {
-  background: linear-gradient(135deg, #063f2a, #0d5d3d);
+.page.dark {
+  background: #07150f;
+  color: #f4fff7;
+}
+
+.hero {
+  background: radial-gradient(circle at top right, #18875a, #053621 60%);
   color: white;
-  border-radius: 34px;
-  padding: 34px;
-  display: flex;
-  justify-content: space-between;
-  gap: 22px;
-  align-items: center;
-  box-shadow: 0 24px 60px rgba(6, 63, 42, .26);
-}
-
-.eyebrow {
-  font-size: 12px;
-  letter-spacing: 2.5px;
-  font-weight: 900;
-  opacity: .76;
-}
-
-.topbar h1 {
-  font-size: 46px;
-  line-height: 1;
-  margin: 12px 0 10px;
-}
-
-.topbar p {
-  margin: 0;
-  font-size: 17px;
-  max-width: 650px;
-  opacity: .9;
-}
-
-.topScore {
-  min-width: 160px;
-  background: rgba(255,255,255,.12);
-  border: 1px solid rgba(255,255,255,.18);
-  border-radius: 28px;
-  padding: 22px;
-  text-align: center;
-}
-
-.topScore span,
-.topScore small {
-  display: block;
-  opacity: .8;
-}
-
-.topScore strong {
-  display: block;
-  font-size: 44px;
-  line-height: 1;
-  margin: 6px 0;
-}
-
-.datePanel,
-.goalCard,
-.panel,
-.mealCard,
-.chartCard {
-  background: rgba(255,255,255,.94);
-  border: 1px solid rgba(18, 64, 40, .08);
   border-radius: 30px;
-  box-shadow: 0 18px 45px rgba(15, 90, 55, .10);
-}
-
-.datePanel {
-  margin-top: 20px;
-  padding: 22px;
-}
-
-.datePanel h2 {
-  margin-top: 0;
-}
-
-.dateChips {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 10px;
-}
-
-.dateChips button {
-  border: 1px solid #d5e5d8;
-  background: #f8fcf8;
-  border-radius: 18px;
-  padding: 12px;
-  color: #10291c;
-  cursor: pointer;
-}
-
-.dateChips button.selected {
-  background: #0b4a32;
-  color: white;
-  border: none;
-}
-
-.dateChips span,
-.dateChips b {
-  display: block;
-}
-
-.dateChips span {
-  font-size: 12px;
-}
-
-.dateChips b {
-  margin-top: 4px;
-}
-
-.dashboard,
-.panel,
-.mealCard {
-  margin-top: 20px;
-}
-
-.goalCard {
-  padding: 26px;
-}
-
-.goalTop {
+  padding: 24px;
   display: flex;
   justify-content: space-between;
-  gap: 18px;
-  align-items: center;
-  flex-wrap: wrap;
+  gap: 16px;
+  box-shadow: 0 20px 45px rgba(5, 54, 33, .22);
 }
 
-.muted {
-  color: #5c7a65;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.goalInputRow {
+.topLine {
   display: flex;
+  gap: 10px;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  margin-top: 8px;
 }
 
-.goalInputRow input {
-  width: 120px;
-  border: 1px solid #cfe0d3;
-  border-radius: 18px;
-  padding: 13px 15px;
-  font-size: 20px;
+.topLine span {
+  font-size: 11px;
+  letter-spacing: 2px;
   font-weight: 900;
-  color: #10291c;
+  opacity: .75;
 }
 
-.leftBox {
-  background: #0b4a32;
+.topLine button {
+  border: 1px solid rgba(255,255,255,.25);
+  background: rgba(255,255,255,.12);
   color: white;
-  border-radius: 24px;
-  padding: 18px 24px;
-  text-align: center;
-}
-
-.leftBox span {
-  display: block;
-  font-size: 13px;
-  opacity: .8;
-}
-
-.leftBox strong {
-  display: block;
-  font-size: 24px;
-  margin-top: 4px;
-}
-
-.progress {
-  height: 14px;
   border-radius: 999px;
-  background: #dce9df;
-  margin-top: 22px;
-  overflow: hidden;
-}
-
-.progress div {
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #0b4a32, #61a84f);
-}
-
-.macroGrid {
-  margin-top: 18px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-}
-
-.macro {
-  background: #f4faf5;
-  border: 1px solid #d7e8db;
-  border-radius: 22px;
-  padding: 17px;
-  text-align: center;
-}
-
-.macro span,
-.macro strong {
-  display: block;
-}
-
-.macro span {
-  color: #5c7a65;
+  padding: 8px 11px;
   font-weight: 800;
-  font-size: 13px;
 }
 
-.macro strong {
-  font-size: 21px;
-  margin-top: 5px;
+.hero h1 {
+  font-size: 34px;
+  margin: 14px 0 8px;
+  line-height: 1;
 }
 
-.chartsGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-  margin-top: 20px;
+.hero p {
+  margin: 0;
+  color: rgba(255,255,255,.85);
+  max-width: 640px;
 }
 
-.chartCard {
-  padding: 22px;
-}
-
-.chartCard h2 {
-  margin-top: 0;
-}
-
-.macroChartWrap {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-
-.donut {
-  width: 160px;
-  height: 160px;
-  border-radius: 50%;
+.ring {
+  min-width: 105px;
+  height: 105px;
+  border-radius: 30px;
+  background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.18);
   display: grid;
   place-items: center;
-  position: relative;
+  text-align: center;
 }
 
-.donut::after {
-  content: "";
-  width: 96px;
-  height: 96px;
-  background: white;
-  border-radius: 50%;
-  position: absolute;
+.ring div {
+  font-size: 34px;
+  font-weight: 950;
+  line-height: 1;
 }
 
-.donut div {
-  position: relative;
-  z-index: 2;
-  font-weight: 900;
-  color: #0b4a32;
-}
-
-.legend {
-  display: grid;
-  gap: 10px;
-}
-
-.legend span {
-  font-weight: 800;
-}
-
-.dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 99px;
-  display: inline-block;
-  margin-right: 8px;
-}
-
-.dot.protein { background: #0b4a32; }
-.dot.carbs { background: #79a85a; }
-.dot.fat { background: #d7a94b; }
-
-.weekChart {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
-  align-items: end;
-  min-height: 210px;
-}
-
-.barWrap {
-  border: none;
-  background: transparent;
-  display: grid;
-  gap: 6px;
-  color: #10291c;
-  cursor: pointer;
-}
-
-.barArea {
-  height: 145px;
-  background: #edf4ee;
-  border-radius: 999px;
-  display: flex;
-  align-items: end;
-  overflow: hidden;
-}
-
-.bar {
-  width: 100%;
-  background: linear-gradient(180deg, #0b4a32, #79a85a);
-  border-radius: 999px;
-}
-
-.barWrap span {
+.ring span {
   font-size: 12px;
-  font-weight: 800;
+  opacity: .75;
 }
 
-.barWrap small {
-  color: #5c7a65;
+.addPanel,
+.goalCard,
+.chartCard,
+.mealCard,
+.summary {
+  background: rgba(255,255,255,.94);
+  border-radius: 28px;
+  box-shadow: 0 16px 38px rgba(14, 74, 47, .10);
+  border: 1px solid rgba(7, 70, 44, .07);
 }
 
-.panel {
-  padding: 26px;
+.dark .addPanel,
+.dark .goalCard,
+.dark .chartCard,
+.dark .mealCard,
+.dark .summary {
+  background: #10231a;
+  border-color: rgba(255,255,255,.07);
 }
 
-.panelHeader h2 {
+.addPanel {
+  margin-top: 16px;
+  padding: 20px;
+}
+
+.sectionHead h2 {
   margin: 0;
-  font-size: 32px;
+  font-size: 28px;
 }
 
-.panelHeader p {
-  margin: 6px 0 0;
-  color: #5c7a65;
+.sectionHead p {
+  margin: 5px 0 0;
+  color: #6f8877;
+  font-size: 17px;
 }
 
 .modeSwitch {
-  margin-top: 20px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.modeSwitch button,
+.aiBtn,
+.saveBtn,
+.copyBtn {
+  border: none;
+  cursor: pointer;
+  font-weight: 900;
 }
 
 .modeSwitch button {
-  border: 1px solid #d5e5d8;
-  border-radius: 20px;
-  padding: 16px;
+  border-radius: 18px;
+  padding: 15px;
   background: #f8fcf8;
-  color: #10291c;
-  font-weight: 900;
-  cursor: pointer;
-  font-size: 15px;
+  border: 1px solid #d9e9dd;
+  color: #0d281b;
 }
 
-.modeSwitch button.active {
+.modeSwitch .active {
+  background: linear-gradient(135deg, #05402a, #08734c);
   color: white;
-  background: linear-gradient(135deg, #063f2a, #0d5d3d);
-  border: none;
-  box-shadow: 0 14px 30px rgba(6,63,42,.20);
+  box-shadow: 0 12px 28px rgba(5, 64, 42, .22);
 }
 
 .formGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  margin-top: 16px;
+  gap: 12px;
+  margin-top: 14px;
 }
 
 label span {
   display: block;
-  color: #5c7a65;
-  font-weight: 900;
-  font-size: 13px;
-  margin-bottom: 8px;
+  color: #66806d;
+  font-weight: 950;
+  margin-bottom: 7px;
 }
 
 select,
@@ -1015,13 +725,12 @@ textarea,
 .weightInput,
 .modal input {
   width: 100%;
-  border: 1px solid #d5e5d8;
-  border-radius: 20px;
+  border: 1px solid #d9e9dd;
   background: white;
-  padding: 15px 16px;
-  font-size: 16px;
-  color: #10291c;
+  border-radius: 18px;
+  padding: 14px;
   outline: none;
+  font-size: 16px;
 }
 
 .weightInput {
@@ -1033,253 +742,436 @@ textarea,
 .weightInput input {
   border: none;
   outline: none;
-  flex: 1;
+  width: 100%;
   font-size: 18px;
   font-weight: 900;
-  width: 100%;
 }
 
 textarea {
-  margin-top: 16px;
-  min-height: 135px;
+  margin-top: 14px;
+  min-height: 120px;
   resize: vertical;
 }
 
 .uploadBox {
-  margin-top: 16px;
-  min-height: 290px;
-  border: 2px dashed #8cbea0;
-  border-radius: 28px;
-  background: #f5fbf6;
+  margin-top: 14px;
+  min-height: 250px;
+  border-radius: 26px;
+  background: #f3fbf4;
+  border: 2px dashed #8bbd9e;
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
-  color: #245c39;
-  cursor: pointer;
+  color: #24593b;
   overflow: hidden;
+  cursor: pointer;
 }
 
-.uploadBox input {
-  display: none;
-}
+.uploadBox input { display: none; }
 
 .uploadBox img {
   width: 100%;
-  height: 320px;
+  height: 290px;
   object-fit: cover;
 }
 
-.uploadInner {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: center;
-}
-
-.foodIcon {
-  font-size: 58px;
+.uploadInner div {
+  font-size: 50px;
 }
 
 .uploadInner strong {
-  font-size: 20px;
+  display: block;
+  margin-top: 8px;
+  font-size: 18px;
 }
 
 .uploadInner span {
-  color: #5c7a65;
+  color: #6f8877;
+  font-size: 14px;
 }
 
-.primaryBtn,
-.saveBtn,
-.clearBtn {
-  border: none;
-  cursor: pointer;
-  font-weight: 900;
-}
-
-.primaryBtn {
+.aiBtn {
   width: 100%;
-  margin-top: 18px;
+  margin-top: 14px;
   padding: 18px;
-  border-radius: 22px;
-  background: linear-gradient(135deg, #063f2a, #0d5d3d);
+  border-radius: 20px;
   color: white;
   font-size: 17px;
-  box-shadow: 0 16px 34px rgba(6,63,42,.22);
+  background: linear-gradient(135deg, #022f1f, #068556);
+  box-shadow: 0 16px 30px rgba(5, 64, 42, .25);
 }
 
 .analysisCard {
-  margin-top: 20px;
-  padding: 22px;
-  border-radius: 26px;
-  background: #f4faf5;
-  border: 1px solid #d7e8db;
+  margin-top: 16px;
+  background: #f5fbf6;
+  border: 1px solid #d9e9dd;
+  border-radius: 24px;
+  padding: 18px;
 }
 
-.analysisTop {
-  display: flex;
-  justify-content: space-between;
-  gap: 18px;
+.analysisCard span {
+  color: #6f8877;
+  font-weight: 900;
 }
 
-.analysisTop h3 {
+.analysisCard h3 {
   margin: 6px 0;
-  font-size: 25px;
-}
-
-.analysisTop p {
-  color: #4b6b55;
+  font-size: 23px;
 }
 
 .analysisKcal {
-  min-width: 120px;
-  height: 120px;
-  border-radius: 28px;
+  margin-top: 12px;
   background: white;
-  border: 1px solid #d7e8db;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  border-radius: 20px;
+  padding: 16px;
+  display: inline-block;
 }
 
-.analysisKcal strong {
-  font-size: 35px;
-  color: #0b4a32;
+.analysisKcal b {
+  font-size: 34px;
+  color: #06452f;
 }
 
-.analysisMacros {
+.miniMacros {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
   margin-top: 12px;
 }
 
-.analysisMacros span {
+.miniMacros span {
   background: white;
+  color: #0d281b;
   border-radius: 999px;
-  padding: 10px 14px;
-  font-weight: 900;
-  border: 1px solid #d7e8db;
-}
-
-.ingredients {
-  margin-top: 16px;
-}
-
-.ingredients h4 {
-  margin-bottom: 8px;
-}
-
-.ingredients div {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 0;
-  border-top: 1px solid #dce9df;
+  padding: 9px 12px;
 }
 
 .saveBtn {
   width: 100%;
-  margin-top: 18px;
-  padding: 16px;
-  border-radius: 20px;
-  background: #0b4a32;
+  margin-top: 14px;
+  padding: 15px;
+  border-radius: 18px;
+  background: #06452f;
   color: white;
-  font-size: 16px;
+}
+
+.summary {
+  margin-top: 16px;
+  padding: 18px;
+}
+
+.dateScroller {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.dateScroller button {
+  flex: 0 0 auto;
+  min-width: 105px;
+  border: 1px solid #d9e9dd;
+  background: #f8fcf8;
+  border-radius: 18px;
+  padding: 12px;
+  color: #0d281b;
+}
+
+.dateScroller .selected {
+  background: #06452f;
+  color: white;
+}
+
+.dateScroller span,
+.dateScroller b {
+  display: block;
+}
+
+.dateScroller span {
+  font-size: 12px;
+}
+
+.dateScroller b {
+  margin-top: 4px;
+}
+
+.goalCard {
+  margin-top: 14px;
+  padding: 18px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+}
+
+.goalCard span {
+  color: #6f8877;
+  font-weight: 900;
+}
+
+.goalInput {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.goalInput input {
+  width: 110px;
+  border-radius: 16px;
+  border: 1px solid #d9e9dd;
+  padding: 12px;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.leftBox {
+  background: #06452f;
+  color: white;
+  border-radius: 20px;
+  padding: 15px 18px;
+  text-align: center;
+}
+
+.leftBox span {
+  color: rgba(255,255,255,.75);
+}
+
+.leftBox b {
+  display: block;
+  font-size: 22px;
+  margin-top: 4px;
+}
+
+.progress {
+  grid-column: 1 / -1;
+  height: 12px;
+  border-radius: 999px;
+  background: #e2efe5;
+  overflow: hidden;
+}
+
+.progress div {
+  height: 100%;
+  background: linear-gradient(90deg, #06452f, #77b75d);
+}
+
+.macroGrid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.macro {
+  background: #f8fcf8;
+  border: 1px solid #d9e9dd;
+  border-radius: 20px;
+  padding: 14px;
+  text-align: center;
+}
+
+.macro span {
+  font-size: 20px;
+}
+
+.macro p {
+  margin: 6px 0;
+  color: #66806d;
+  font-weight: 900;
+}
+
+.macro b {
+  font-size: 23px;
+}
+
+.charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.chartCard {
+  padding: 18px;
+  min-height: 210px;
+}
+
+.chartCard h3 {
+  margin: 0 0 12px;
+  font-size: 22px;
+}
+
+.emptyText {
+  color: #6f8877;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.donutWrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.donut {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+
+.donut::after {
+  content: "";
+  width: 92px;
+  height: 92px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+}
+
+.donut div {
+  position: relative;
+  z-index: 2;
+  font-weight: 950;
+  color: #06452f;
+}
+
+.weekChart {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  min-height: 160px;
+  align-items: end;
+}
+
+.barWrap {
+  display: grid;
+  gap: 5px;
+  text-align: center;
+}
+
+.barArea {
+  height: 115px;
+  background: #eef6f0;
+  border-radius: 999px;
+  display: flex;
+  align-items: end;
+  overflow: hidden;
+}
+
+.bar {
+  width: 100%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #06452f, #77b75d);
+}
+
+.barWrap span {
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.barWrap small {
+  font-size: 10px;
+  color: #6f8877;
+}
+
+.copyBtn {
+  width: 100%;
+  margin-top: 14px;
+  border-radius: 18px;
+  padding: 14px;
+  background: #dcece1;
+  color: #06452f;
 }
 
 .mealGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
-  margin-top: 20px;
+  gap: 14px;
+  margin-top: 16px;
 }
 
 .mealCard {
-  padding: 22px;
+  padding: 18px;
 }
 
-.mealHead {
+.mealTop {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-.mealHead h3 {
-  margin: 0;
+.mealTop h3 {
+  display: inline;
+  margin: 0 0 0 6px;
+  font-size: 19px;
 }
 
-.mealHead strong {
-  color: #0b4a32;
+.mealTop b {
+  color: #06452f;
 }
 
-.empty {
-  color: #7d9583;
-  margin-bottom: 0;
+.emptyMeal {
+  margin-top: 18px;
+  border-radius: 18px;
+  background: #f6fbf7;
+  padding: 16px;
+  color: #6f8877;
+  font-weight: 800;
 }
 
 .foodItem {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e2efe5;
   display: flex;
   gap: 12px;
-  align-items: flex-start;
-  border-top: 1px solid #e3eee6;
-  padding-top: 14px;
-  margin-top: 14px;
 }
 
 .foodItem img {
-  width: 66px;
-  height: 66px;
+  width: 62px;
+  height: 62px;
+  border-radius: 16px;
   object-fit: cover;
-  border-radius: 18px;
 }
 
 .foodItem p {
   margin: 4px 0;
-  color: #4b6b55;
+  color: #6f8877;
 }
 
 .foodItem small {
-  color: #5c7a65;
+  color: #66806d;
 }
 
 .itemActions {
   display: flex;
-  gap: 8px;
+  gap: 7px;
+  margin-top: 9px;
   flex-wrap: wrap;
-  margin-top: 10px;
 }
 
 .itemActions button {
   border: none;
   border-radius: 12px;
   padding: 8px 10px;
-  background: #edf4ee;
-  color: #0b4a32;
-  cursor: pointer;
-  font-weight: 800;
+  background: #e8f3eb;
+  color: #06452f;
+  font-weight: 900;
 }
 
 .itemActions button:last-child {
-  background: #fee1dd;
+  background: #ffe0dc;
   color: #a33122;
-}
-
-.clearBtn {
-  width: 100%;
-  margin-top: 20px;
-  padding: 16px;
-  border-radius: 22px;
-  background: #dce9df;
-  color: #10291c;
 }
 
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.35);
+  background: rgba(0,0,0,.4);
   display: grid;
   place-items: center;
   padding: 16px;
@@ -1290,116 +1182,161 @@ textarea {
   width: 100%;
   max-width: 520px;
   background: white;
-  border-radius: 28px;
-  padding: 24px;
-  box-shadow: 0 30px 80px rgba(0,0,0,.25);
+  border-radius: 26px;
+  padding: 22px;
 }
 
-.modal h2 {
-  margin-top: 0;
-}
-
-.modal label {
-  display: block;
-  margin-top: 12px;
+.modal input {
+  margin-top: 10px;
 }
 
 .modalGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 10px;
 }
 
 .modalButtons {
+  margin-top: 14px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 18px;
+  gap: 10px;
 }
 
 .modalButtons button {
   border: none;
-  border-radius: 18px;
+  border-radius: 16px;
   padding: 14px;
   font-weight: 900;
-  cursor: pointer;
 }
 
 .modalButtons button:last-child {
-  background: #0b4a32;
+  background: #06452f;
   color: white;
 }
 
 @media (max-width: 760px) {
   .page {
-    padding: 12px;
+    padding: 10px;
   }
 
-  .topbar {
-    border-radius: 26px;
-    padding: 26px;
-    display: block;
+  .hero {
+    border-radius: 24px;
+    padding: 18px;
   }
 
-  .topbar h1 {
-    font-size: 34px;
+  .hero h1 {
+    font-size: 27px;
   }
 
-  .topScore {
-    margin-top: 18px;
-    width: 100%;
+  .hero p {
+    font-size: 14px;
   }
 
-  .dateChips {
-    grid-template-columns: repeat(2, 1fr);
+  .ring {
+    min-width: 88px;
+    height: 88px;
+    border-radius: 24px;
   }
 
-  .goalTop {
-    display: block;
+  .ring div {
+    font-size: 29px;
   }
 
-  .leftBox {
-    margin-top: 14px;
+  .addPanel {
+    padding: 18px;
   }
 
-  .macroGrid,
-  .formGrid,
-  .modeSwitch,
-  .mealGrid,
-  .chartsGrid,
-  .modalGrid {
+  .sectionHead h2 {
+    font-size: 29px;
+  }
+
+  .sectionHead p {
+    font-size: 18px;
+  }
+
+  .formGrid {
     grid-template-columns: 1fr;
   }
 
-  .panel,
-  .goalCard,
-  .mealCard,
-  .chartCard,
-  .datePanel {
-    border-radius: 24px;
-    padding: 20px;
+  .uploadBox {
+    min-height: 210px;
   }
 
-  .analysisTop {
+  .macroGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .charts {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .chartCard {
+    padding: 16px;
+  }
+
+  .chartCard h3 {
+    font-size: 21px;
+  }
+
+  .emptyText {
+    font-size: 16px;
+  }
+
+  .donut {
+    width: 125px;
+    height: 125px;
+  }
+
+  .donut::after {
+    width: 78px;
+    height: 78px;
+  }
+
+  .mealGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .mealCard {
+    padding: 14px;
+  }
+
+  .mealTop {
     display: block;
   }
 
-  .analysisKcal {
-    margin-top: 14px;
-    width: 100%;
+  .mealTop h3 {
+    font-size: 16px;
+  }
+
+  .emptyMeal {
+    padding: 12px;
+    font-size: 14px;
   }
 
   .foodItem {
     flex-direction: column;
   }
+}
 
-  .macroChartWrap {
-    flex-direction: column;
-    align-items: flex-start;
+@media (max-width: 430px) {
+  .hero {
+    display: block;
   }
 
-  .weekChart {
-    min-height: 180px;
+  .ring {
+    margin-top: 14px;
+    width: 100%;
+  }
+
+  .charts {
+    grid-template-columns: 1fr;
+  }
+
+  .mealGrid {
+    grid-template-columns: 1fr;
   }
 }
 `;
