@@ -1513,166 +1513,427 @@ textarea {
 }
 
 .bottomNav .active { color: ${GREEN}; }
-
 @media (max-width: 760px) {
-  .page { padding: 8px; padding-bottom: 92px; }
+  .page {
+    padding: 8px;
+    padding-bottom: 86px;
+  }
 
   .hero {
-    min-height: 150px;
+    min-height: 138px;
     border-radius: 18px;
-    padding: 20px;
+    padding: 16px;
+    background-position: center;
   }
 
-  .eyebrow { font-size: 9px; letter-spacing: 3px; }
+  .eyebrow {
+    font-size: 8px;
+    letter-spacing: 2px;
+  }
 
   .hero h1 {
-    font-size: 31px;
-    margin: 14px 0 8px;
+    font-size: 27px;
+    margin: 10px 0 6px;
   }
 
-  .hero h1 span { font-size: 31px; }
+  .hero h1 span {
+    font-size: 27px;
+  }
 
   .hero p {
-    font-size: 14px;
-    max-width: 250px;
+    font-size: 12px;
+    max-width: 210px;
+    line-height: 1.25;
   }
 
   .todayBox {
-    width: 84px;
-    height: 84px;
+    width: 74px;
+    height: 74px;
+    border-radius: 16px;
+  }
+
+  .todayBox span {
+    font-size: 11px;
+  }
+
+  .todayBox b {
+    font-size: 28px;
+  }
+
+  .todayBox small {
+    font-size: 11px;
+  }
+
+  .addCard,
+  .healthCard,
+  .summaryCard,
+  .chartCard,
+  .mealsList {
     border-radius: 18px;
+    padding: 13px;
+    margin-top: 10px;
   }
 
-  .todayBox span { font-size: 13px; }
-  .todayBox b { font-size: 34px; }
-  .todayBox small { font-size: 13px; }
-
-  .addCard, .healthCard, .summaryCard, .chartCard, .mealsList {
-    border-radius: 18px;
-    padding: 16px;
+  .card h2 {
+    font-size: 22px;
+    margin-bottom: 10px;
   }
 
-  .card h2 { font-size: 27px; margin-bottom: 14px; }
-
-  .formGrid { grid-template-columns: 1fr 1fr; gap: 12px; }
-
-  label > span { font-size: 15px; }
-
-  .selectWrap, .weightWrap {
-    height: 48px;
-    border-radius: 13px;
+  .formGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
 
-  .selectWrap svg { margin-left: 8px; margin-right: 5px; }
+  label > span {
+    font-size: 12px;
+    margin-bottom: 5px;
+  }
 
-  select, .weightWrap input { font-size: 17px; }
+  .selectWrap,
+  .weightWrap {
+    height: 42px;
+    border-radius: 12px;
+  }
 
-  .weightWrap b { width: 45px; }
+  .selectWrap svg {
+    margin-left: 6px;
+    margin-right: 4px;
+    width: 22px;
+    height: 22px;
+  }
+
+  select,
+  .weightWrap input {
+    font-size: 14px;
+  }
+
+  .weightWrap input {
+    padding: 0 8px;
+  }
+
+  .weightWrap b {
+    width: 36px;
+    font-size: 13px;
+  }
 
   .uploadBox {
-    min-height: 155px;
-    border-radius: 16px;
-    margin-top: 18px;
+    min-height: 118px;
+    border-radius: 15px;
+    margin-top: 12px;
+  }
+
+  .uploadBox img {
+    height: 150px;
   }
 
   .cameraIcon {
-    width: 60px;
-    height: 60px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 6px;
   }
 
-  .uploadContent strong { font-size: 25px; }
-  .uploadContent span { font-size: 14px; }
+  .cameraIcon svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .uploadContent strong {
+    font-size: 19px;
+  }
+
+  .uploadContent span {
+    font-size: 11px;
+    margin-top: 3px;
+  }
 
   .aiButton {
-    min-height: 48px;
-    font-size: 16px;
-    border-radius: 13px;
+    min-height: 42px;
+    font-size: 14px;
+    border-radius: 12px;
+    margin-top: 12px;
   }
 
-  .manualLink { font-size: 16px; }
+  .manualLink {
+    font-size: 13px;
+    margin-top: 10px;
+  }
 
-  .healthCard h2 { font-size: 24px; }
-  .healthCard > p { font-size: 14px; }
+  .manualLink svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .healthCard h2 {
+    font-size: 20px;
+  }
+
+  .healthCard > p {
+    font-size: 11px;
+    margin-bottom: 10px;
+  }
 
   .healthTabs {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .healthTabs button {
+    min-height: 54px;
+    font-size: 12px;
+    padding: 7px 5px;
+    border-radius: 15px;
+    flex-direction: row;
+    gap: 6px;
+  }
+
+  .healthTabs button svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .opinion {
+    padding: 11px;
+    margin-top: 10px;
+    border-radius: 15px;
+  }
+
+  .opinion h3 {
+    font-size: 17px;
+    margin-bottom: 5px;
+  }
+
+  .opinion p {
+    font-size: 13px;
+    line-height: 1.28;
+  }
+
+  .daysRow {
+    display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 6px;
   }
 
-  .healthTabs button {
-    min-height: 44px;
-    font-size: 11px;
-    padding: 6px 3px;
-    flex-direction: column;
-    gap: 1px;
-  }
-
-  .opinion { padding: 13px; }
-  .opinion h3 { font-size: 21px; }
-  .opinion p { font-size: 15px; }
-
-  .daysRow {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 6px;
-  }
-
   .daysRow button {
-    min-width: 76px;
-    min-height: 64px;
+    min-width: 0;
+    min-height: 52px;
+    padding: 5px;
+    border-radius: 12px;
   }
 
-  .daysRow span { font-size: 12px; }
-  .daysRow b { font-size: 13px; }
+  .daysRow span {
+    font-size: 10px;
+    line-height: 1.1;
+  }
+
+  .daysRow b {
+    font-size: 11px;
+    margin-top: 3px;
+  }
 
   .goalGrid {
-    grid-template-columns: 1fr 126px;
-    gap: 10px;
+    grid-template-columns: 1fr 112px;
+    gap: 8px;
+    margin-top: 12px;
   }
 
-  .leftBox { padding: 12px; }
-  .leftBox b { font-size: 21px; }
+  .goalGrid span {
+    font-size: 13px;
+  }
+
+  .goalInput {
+    margin-top: 5px;
+    gap: 6px;
+  }
+
+  .goalInput input {
+    width: 82px;
+    height: 39px;
+    font-size: 15px;
+    border-radius: 11px;
+  }
+
+  .goalInput b {
+    font-size: 12px;
+  }
+
+  .leftBox {
+    padding: 9px 7px;
+    border-radius: 14px;
+  }
+
+  .leftBox span {
+    font-size: 11px;
+  }
+
+  .leftBox b {
+    font-size: 17px;
+  }
+
+  .progressBar {
+    margin: 12px 0;
+    height: 8px;
+  }
 
   .macroGrid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 7px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
   }
 
-  .macroItem { padding: 10px 8px; }
-  .macroItem b { font-size: 12px; }
-  .macroItem strong { font-size: 16px; }
+  .macroItem {
+    padding: 10px;
+    border-radius: 15px;
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    column-gap: 8px;
+    align-items: center;
+  }
+
+  .macroItem svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  .macroItem b {
+    font-size: 13px;
+    margin: 0;
+  }
+
+  .macroItem strong {
+    font-size: 16px;
+    margin-top: 2px;
+  }
+
+  .smallBar {
+    grid-column: 1 / -1;
+    height: 5px;
+    margin-top: 8px;
+  }
 
   .chartsGrid {
     grid-template-columns: 1fr;
     gap: 10px;
   }
 
+  .chartCard h2 {
+    font-size: 20px;
+  }
+
   .macroChart {
-    grid-template-columns: 130px 1fr;
-    gap: 15px;
+    grid-template-columns: 105px 1fr;
+    gap: 12px;
   }
 
   .donut {
-    width: 118px;
-    height: 118px;
+    width: 98px;
+    height: 98px;
   }
 
   .donut::after {
-    width: 72px;
-    height: 72px;
+    width: 60px;
+    height: 60px;
   }
 
-  .legend p { font-size: 14px; }
+  .donut b {
+    font-size: 15px;
+  }
 
-  .barTrack { height: 105px; }
+  .donut span {
+    font-size: 10px;
+  }
+
+  .legend p {
+    font-size: 12px;
+    margin: 7px 0;
+  }
+
+  .weekChart {
+    gap: 5px;
+  }
+
+  .barTrack {
+    height: 78px;
+  }
+
+  .barItem b {
+    font-size: 10px;
+    margin-top: 5px;
+  }
+
+  .barItem span {
+    font-size: 10px;
+  }
+
+  .mealsList h2 {
+    font-size: 20px;
+  }
+
+  .mealRow {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 0;
+  }
+
+  .mealRow > div:first-child {
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .mealRow svg {
+    width: 22px;
+    height: 22px;
+    flex: 0 0 auto;
+  }
+
+  .mealRow b {
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .mealRow strong {
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .mealRow em {
+    margin-left: 6px;
+    font-size: 17px;
+  }
+
+  .foodMini {
+    padding: 9px;
+    gap: 9px;
+    border-radius: 14px;
+  }
+
+  .foodMini img {
+    width: 54px;
+    height: 54px;
+    border-radius: 12px;
+  }
+
+  .foodMini b {
+    font-size: 13px;
+  }
+
+  .foodMini p,
+  .foodMini small {
+    font-size: 11px;
+  }
 
   .bottomNav {
-    min-height: 72px;
-    border-radius: 22px;
+    min-height: 64px;
+    border-radius: 20px;
+    bottom: 8px;
   }
 
-  .bottomNav button { font-size: 23px; }
-  .bottomNav button span { font-size: 12px; }
+  .bottomNav button {
+    font-size: 20px;
+  }
+
+  .bottomNav button span {
+    font-size: 10px;
+  }
 }
+
 `;
