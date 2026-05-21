@@ -1114,3 +1114,7 @@ export default function App() {
     font-size: 10px;
   }
 }
+ `}</style>
+    </>
+  );
+}
