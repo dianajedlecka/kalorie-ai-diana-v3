@@ -25,12 +25,17 @@ const healthTabs = [
 function getDays() {
   const names = ["niedz.", "pon.", "wt.", "śr.", "czw.", "pt.", "sob."];
   const today = new Date();
+
   return Array.from({ length: 7 }, (_, index) => {
     const d = new Date(today);
     d.setDate(today.getDate() - (6 - index));
+
     return {
       day: names[d.getDay()],
-      date: d.toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit" }),
+      date: d.toLocaleDateString("pl-PL", {
+        day: "2-digit",
+        month: "2-digit",
+      }),
       active: index === 6,
     };
   });
@@ -50,7 +55,10 @@ export default function App() {
             <div className="eyebrow">FIT & HEALTH TRACKER</div>
             <h1>Fit and Health</h1>
             <div className="signature">by Diana</div>
-            <p>Analiza posiłków, makro i ocena dla Hashimoto, PCOS oraz insulinooporności.</p>
+            <p>
+              Analiza posiłków, makro i ocena dla Hashimoto, PCOS oraz
+              insulinooporności.
+            </p>
           </div>
 
           <div className="todayBox">
@@ -68,7 +76,10 @@ export default function App() {
               <span>Posiłek</span>
               <div className="field">
                 <b>☀️</b>
-                <select value={selectedMeal} onChange={(e) => setSelectedMeal(e.target.value)}>
+                <select
+                  value={selectedMeal}
+                  onChange={(e) => setSelectedMeal(e.target.value)}
+                >
                   {meals.map(([name]) => (
                     <option key={name}>{name}</option>
                   ))}
@@ -101,7 +112,6 @@ export default function App() {
 
         <section className="card healthCard">
           <h2>Ocena zdrowotna posiłku</h2>
-          <p>Szybka orientacyjna ocena dla wybranego obszaru zdrowia.</p>
 
           <div className="healthGrid">
             {healthTabs.map(([name, icon]) => (
@@ -155,18 +165,21 @@ export default function App() {
               <strong>0 g</strong>
               <i />
             </div>
+
             <div className="macroMini">
               <span>🌾</span>
               <b>Węgle</b>
               <strong>0 g</strong>
               <i />
             </div>
+
             <div className="macroMini">
               <span>🥑</span>
               <b>Tłuszcze</b>
               <strong>0 g</strong>
               <i />
             </div>
+
             <div className="macroMini">
               <span>🍃</span>
               <b>Błonnik</b>
@@ -184,10 +197,17 @@ export default function App() {
                 <b>0 g</b>
                 <span>łącznie</span>
               </div>
+
               <div className="legend">
-                <p><i />Białko <b>0 g</b></p>
-                <p><i />Węgle <b>0 g</b></p>
-                <p><i />Tłuszcze <b>0 g</b></p>
+                <p>
+                  <i /> Białko <b>0 g</b>
+                </p>
+                <p>
+                  <i /> Węgle <b>0 g</b>
+                </p>
+                <p>
+                  <i /> Tłuszcze <b>0 g</b>
+                </p>
               </div>
             </div>
           </div>
@@ -208,6 +228,7 @@ export default function App() {
 
         <section className="card mealsCard">
           <h2>Posiłki</h2>
+
           {meals.map(([name, icon]) => (
             <div className="mealRow" key={name}>
               <div>
@@ -221,10 +242,18 @@ export default function App() {
         </section>
 
         <nav className="bottomNav">
-          <button>⌘<span>Dzisiaj</span></button>
-          <button>▤<span>Dziennik</span></button>
-          <button>▥<span>Statystyki</span></button>
-          <button>⚙<span>Ustawienia</span></button>
+          <button>
+            ⌘<span>Dzisiaj</span>
+          </button>
+          <button>
+            ▤<span>Dziennik</span>
+          </button>
+          <button>
+            ▥<span>Statystyki</span>
+          </button>
+          <button>
+            ⚙<span>Ustawienia</span>
+          </button>
         </nav>
       </main>
 
@@ -331,6 +360,7 @@ export default function App() {
           font-size: 34px;
           color: ${GREEN};
           line-height: 1.05;
+          font-weight: 900;
         }
 
         .addGrid {
@@ -445,12 +475,6 @@ export default function App() {
           background: transparent;
           border: 2px solid ${GREEN};
           color: ${GREEN};
-        }
-
-        .healthCard p {
-          margin: -8px 0 16px;
-          color: #665a49;
-          font-size: 19px;
         }
 
         .healthGrid {
@@ -863,20 +887,33 @@ export default function App() {
           }
 
           .photoBtn span {
-            font-size: 25px;
+            font-size: 22px;
           }
 
-          .photoBtn strong {
-            font-size: 15px;
+          .photoBtn strong,
+          .photoBtn small,
+          label span,
+          select,
+          input,
+          .weightField b,
+          .aiBtn,
+          .manualBtn,
+          .healthGrid button,
+          .day b,
+          .day span,
+          .day small,
+          .goalInput span,
+          .macroMini b,
+          .legend p,
+          .bar b,
+          .bar span,
+          .mealRow b,
+          .mealRow strong {
+            font-size: 14px;
           }
 
           .photoBtn small {
-            font-size: 10px;
-          }
-
-          label span {
             font-size: 12px;
-            margin-bottom: 5px;
           }
 
           .field,
@@ -886,13 +923,8 @@ export default function App() {
           }
 
           .field b {
-            font-size: 20px;
+            font-size: 18px;
             margin: 0 6px;
-          }
-
-          select,
-          input {
-            font-size: 14px;
           }
 
           .weightField input {
@@ -901,7 +933,6 @@ export default function App() {
 
           .weightField b {
             width: 34px;
-            font-size: 13px;
           }
 
           .actions {
@@ -912,24 +943,12 @@ export default function App() {
           .aiBtn,
           .manualBtn {
             min-height: 42px;
-            font-size: 13px;
             border-radius: 12px;
+            font-weight: 900;
           }
 
           .healthCard {
             padding: 12px;
-          }
-
-          .healthCard h2 {
-            font-size: 19px;
-            margin-bottom: 4px;
-            line-height: 1.05;
-          }
-
-          .healthCard p {
-            font-size: 11px;
-            line-height: 1.2;
-            margin: 0 0 9px;
           }
 
           .healthGrid {
@@ -940,18 +959,13 @@ export default function App() {
           .healthGrid button {
             min-height: 64px;
             border-radius: 12px;
-            font-size: 9.5px;
             padding: 4px 2px;
             gap: 1px;
+            line-height: 1.05;
           }
 
           .healthGrid button span {
-            font-size: 31px;
-          }
-
-          .weekCard h2 {
-            font-size: 20px;
-            margin-bottom: 8px;
+            font-size: 30px;
           }
 
           .daysGrid {
@@ -963,13 +977,6 @@ export default function App() {
             min-height: 62px;
             border-radius: 9px;
             padding: 3px 1px;
-          }
-
-          .day b,
-          .day span,
-          .day small {
-            font-size: 9px;
-            line-height: 1;
           }
 
           .day strong {
@@ -984,20 +991,11 @@ export default function App() {
             padding-right: 40px;
           }
 
-          .goalCard h2 {
-            font-size: 22px;
-          }
-
           .goalInput input {
             width: 72px;
             height: 36px;
             border-radius: 10px;
-            font-size: 13px;
             padding-left: 10px;
-          }
-
-          .goalInput span {
-            font-size: 11px;
           }
 
           .remainingBox {
@@ -1008,7 +1006,7 @@ export default function App() {
           }
 
           .remainingBox span {
-            font-size: 10px;
+            font-size: 12px;
           }
 
           .remainingBox strong {
@@ -1037,12 +1035,6 @@ export default function App() {
             font-size: 20px;
           }
 
-          .macroMini b {
-            font-size: 10.5px;
-            line-height: 1.05;
-            white-space: nowrap;
-          }
-
           .macroMini strong {
             font-size: 17px;
             line-height: 1;
@@ -1060,11 +1052,6 @@ export default function App() {
 
           .chartCard {
             padding: 11px;
-          }
-
-          .chartCard h2 {
-            font-size: 20px;
-            margin-bottom: 8px;
           }
 
           .macroChart {
@@ -1094,10 +1081,10 @@ export default function App() {
           }
 
           .legend p {
-            font-size: 10px;
             grid-template-columns: 8px 1fr 22px;
             gap: 4px;
             margin: 4px 0;
+            line-height: 1.1;
           }
 
           .legend i {
@@ -1114,17 +1101,6 @@ export default function App() {
             margin-bottom: 4px;
           }
 
-          .bar b,
-          .bar span {
-            font-size: 8.5px;
-            line-height: 1.1;
-          }
-
-          .mealsCard h2 {
-            font-size: 22px;
-            margin-bottom: 8px;
-          }
-
           .mealRow {
             grid-template-columns: minmax(0, 1fr) 58px 12px;
             gap: 4px;
@@ -1137,17 +1113,6 @@ export default function App() {
 
           .mealRow span {
             font-size: 22px;
-          }
-
-          .mealRow b {
-            font-size: 16px;
-            white-space: nowrap;
-          }
-
-          .mealRow strong {
-            font-size: 15px;
-            text-align: right;
-            white-space: nowrap;
           }
 
           .mealRow em {
