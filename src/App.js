@@ -51,7 +51,7 @@ export default function App() {
     <>
       <main className="app">
         <section className="hero">
-          <div className="heroText">
+          <div>
             <div className="eyebrow">FIT & HEALTH TRACKER</div>
             <h1>Fit and Health</h1>
             <div className="signature">by Diana</div>
@@ -63,19 +63,19 @@ export default function App() {
 
           <div className="todayBox">
             <span>Dzisiaj</span>
-            <strong>0</strong>
-            <b>kcal</b>
+            <span className="big">0</span>
+            <span>kcal</span>
           </div>
         </section>
 
-        <section className="card addCard">
+        <section className="card">
           <h2>Dodaj posiłek</h2>
 
           <div className="addGrid">
             <label>
               <span>Posiłek</span>
               <div className="field">
-                <b>☀️</b>
+                <span className="icon">☀️</span>
                 <select
                   value={selectedMeal}
                   onChange={(e) => setSelectedMeal(e.target.value)}
@@ -89,18 +89,15 @@ export default function App() {
 
             <label>
               <span>Waga porcji</span>
-              <div className="weightField">
+              <div className="field weight">
                 <input defaultValue="200" />
-                <b>g</b>
+                <span>g</span>
               </div>
             </label>
 
             <button className="photoBtn">
-              <span>📷</span>
-              <div>
-                <strong>Add photo</strong>
-                <small>lub z galerii</small>
-              </div>
+              <span className="icon">📷</span>
+              <span>Add photo</span>
             </button>
           </div>
 
@@ -110,7 +107,7 @@ export default function App() {
           </div>
         </section>
 
-        <section className="card healthCard">
+        <section className="card">
           <h2>Ocena zdrowotna posiłku</h2>
 
           <div className="healthGrid">
@@ -120,28 +117,29 @@ export default function App() {
                 className={activeHealth === name ? "active" : ""}
                 onClick={() => setActiveHealth(name)}
               >
-                <span>{icon}</span>
-                <b>{name}</b>
+                <span className="healthIcon">{icon}</span>
+                <span>{name}</span>
               </button>
             ))}
           </div>
         </section>
 
-        <section className="card weekCard">
+        <section className="card">
           <h2>7 dni</h2>
+
           <div className="daysGrid">
             {days.map((d) => (
               <div className={d.active ? "day active" : "day"} key={d.day + d.date}>
-                <b>{d.day}</b>
+                <span>{d.day}</span>
                 <span>{d.date}</span>
-                <strong>0</strong>
-                <small>kcal</small>
+                <span>0</span>
+                <span>kcal</span>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="card goalCard">
+        <section className="card">
           <div className="goalTop">
             <div>
               <h2>Cel dzienny</h2>
@@ -153,37 +151,37 @@ export default function App() {
 
             <div className="remainingBox">
               <span>Zostało</span>
-              <strong>{goal}</strong>
-              <b>kcal</b>
+              <span>{goal}</span>
+              <span>kcal</span>
             </div>
           </div>
 
           <div className="macroCards">
             <div className="macroMini">
-              <span>🥚</span>
-              <b>Białko</b>
-              <strong>0 g</strong>
+              <span className="icon">🥚</span>
+              <span>Białko</span>
+              <span>0 g</span>
               <i />
             </div>
 
             <div className="macroMini">
-              <span>🌾</span>
-              <b>Węgle</b>
-              <strong>0 g</strong>
+              <span className="icon">🌾</span>
+              <span>Węgle</span>
+              <span>0 g</span>
               <i />
             </div>
 
             <div className="macroMini">
-              <span>🥑</span>
-              <b>Tłuszcze</b>
-              <strong>0 g</strong>
+              <span className="icon">🥑</span>
+              <span>Tłuszcze</span>
+              <span>0 g</span>
               <i />
             </div>
 
             <div className="macroMini">
-              <span>🍃</span>
-              <b>Błonnik</b>
-              <strong>0 g</strong>
+              <span className="icon">🍃</span>
+              <span>Błonnik</span>
+              <span>0 g</span>
               <i />
             </div>
           </div>
@@ -192,33 +190,28 @@ export default function App() {
         <section className="chartsGrid">
           <div className="card chartCard">
             <h2>Makro</h2>
+
             <div className="macroChart">
               <div className="donut">
-                <b>0 g</b>
-                <span>łącznie</span>
+                <span>0 g</span>
               </div>
 
               <div className="legend">
-                <p>
-                  <i /> Białko <b>0 g</b>
-                </p>
-                <p>
-                  <i /> Węgle <b>0 g</b>
-                </p>
-                <p>
-                  <i /> Tłuszcze <b>0 g</b>
-                </p>
+                <p><i /> <span>Białko</span> <span>0 g</span></p>
+                <p><i /> <span>Węgle</span> <span>0 g</span></p>
+                <p><i /> <span>Tłuszcze</span> <span>0 g</span></p>
               </div>
             </div>
           </div>
 
           <div className="card chartCard">
             <h2>7 dni – kcal</h2>
+
             <div className="bars">
               {days.map((d) => (
                 <div className="bar" key={d.day}>
                   <div />
-                  <b>{d.day}</b>
+                  <span>{d.day}</span>
                   <span>0</span>
                 </div>
               ))}
@@ -232,41 +225,34 @@ export default function App() {
           {meals.map(([name, icon]) => (
             <div className="mealRow" key={name}>
               <div>
-                <span>{icon}</span>
-                <b>{name}</b>
+                <span className="icon">{icon}</span>
+                <span>{name}</span>
               </div>
-              <strong>0 kcal</strong>
-              <em>›</em>
+              <span>0 kcal</span>
+              <span>›</span>
             </div>
           ))}
         </section>
 
         <nav className="bottomNav">
-          <button>
-            ⌘<span>Dzisiaj</span>
-          </button>
-          <button>
-            ▤<span>Dziennik</span>
-          </button>
-          <button>
-            ▥<span>Statystyki</span>
-          </button>
-          <button>
-            ⚙<span>Ustawienia</span>
-          </button>
+          <button>⌘<span>Dzisiaj</span></button>
+          <button>▤<span>Dziennik</span></button>
+          <button>▥<span>Statystyki</span></button>
+          <button>⚙<span>Ustawienia</span></button>
         </nav>
       </main>
 
       <style>{`
         * {
           box-sizing: border-box;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
+          font-weight: 400 !important;
         }
 
         body {
           margin: 0;
           background: ${BG};
           color: ${DARK};
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
         }
 
         .app {
@@ -276,121 +262,105 @@ export default function App() {
         }
 
         .hero {
-          min-height: 250px;
-          border-radius: 28px;
-          padding: 32px;
+          min-height: 220px;
+          border-radius: 26px;
+          padding: 28px;
           color: white;
           background:
-            linear-gradient(90deg, rgba(4, 55, 36, 0.95), rgba(4, 55, 36, 0.45)),
+            linear-gradient(90deg, rgba(4, 55, 36, 0.94), rgba(4, 55, 36, 0.45)),
             url(${HERO_IMAGE});
           background-size: cover;
           background-position: center;
           display: flex;
           justify-content: space-between;
-          gap: 18px;
-          box-shadow: 0 14px 40px rgba(0, 0, 0, 0.16);
+          gap: 16px;
           overflow: hidden;
         }
 
         .eyebrow {
-          font-size: 13px;
-          letter-spacing: 4px;
-          font-weight: 900;
+          font-size: 11px;
+          letter-spacing: 3px;
         }
 
         .hero h1 {
-          font-size: 52px;
-          margin: 22px 0 0;
-          line-height: 0.95;
+          font-size: 36px;
+          margin: 16px 0 0;
+          line-height: 1;
         }
 
         .signature {
           color: #e6ef79;
-          font-size: 34px;
-          font-family: cursive;
-          margin-bottom: 12px;
+          font-size: 24px;
+          font-family: cursive !important;
+          margin-bottom: 10px;
         }
 
         .hero p {
-          font-size: 21px;
+          font-size: 15px;
           line-height: 1.25;
-          font-weight: 800;
-          max-width: 470px;
+          max-width: 450px;
           margin: 0;
         }
 
         .todayBox {
-          width: 150px;
-          height: 150px;
-          border-radius: 24px;
+          width: 120px;
+          height: 120px;
+          border-radius: 22px;
           background: rgba(0, 68, 45, 0.92);
           display: grid;
           place-items: center;
           align-content: center;
           border: 1px solid rgba(255, 255, 255, 0.35);
           flex: 0 0 auto;
+          font-size: 14px;
         }
 
-        .todayBox span {
-          font-size: 20px;
-          font-weight: 900;
-        }
-
-        .todayBox strong {
-          font-size: 58px;
-          line-height: 0.95;
-          color: white;
-        }
-
-        .todayBox b {
-          font-size: 20px;
+        .todayBox .big {
+          font-size: 24px;
         }
 
         .card {
           background: linear-gradient(145deg, #fffaf0, #fff4df);
           border: 1px solid rgba(97, 76, 42, 0.12);
-          border-radius: 24px;
-          padding: 24px;
-          margin-top: 16px;
-          box-shadow: 0 12px 35px rgba(65, 50, 20, 0.08);
+          border-radius: 22px;
+          padding: 22px;
+          margin-top: 14px;
+          box-shadow: 0 10px 30px rgba(65, 50, 20, 0.07);
         }
 
         h2 {
-          margin: 0 0 16px;
-          font-size: 34px;
+          margin: 0 0 14px;
+          font-size: 22px;
           color: ${GREEN};
-          line-height: 1.05;
-          font-weight: 900;
+          line-height: 1.1;
         }
 
         .addGrid {
           display: grid;
           grid-template-columns: 1.2fr 0.95fr 0.95fr;
-          gap: 18px;
+          gap: 14px;
           align-items: end;
         }
 
-        label span {
+        label > span {
           display: block;
-          font-size: 17px;
-          font-weight: 900;
-          margin-bottom: 8px;
+          font-size: 14px;
+          margin-bottom: 6px;
         }
 
-        .field,
-        .weightField {
-          height: 62px;
+        .field {
+          height: 54px;
           border: 1px solid #e2d4ba;
           background: white;
-          border-radius: 16px;
+          border-radius: 14px;
           display: flex;
           align-items: center;
           overflow: hidden;
         }
 
-        .field b {
-          font-size: 26px;
-          margin: 0 12px;
+        .field .icon {
+          font-size: 20px;
+          padding: 0 10px;
         }
 
         select,
@@ -399,70 +369,57 @@ export default function App() {
           background: transparent;
           outline: 0;
           width: 100%;
-          font-size: 22px;
+          font-size: 14px;
           color: #1d1b18;
         }
 
-        .weightField input {
-          padding-left: 22px;
+        .weight input {
+          padding-left: 14px;
         }
 
-        .weightField b {
-          width: 54px;
+        .weight span:last-child {
+          width: 44px;
           height: 100%;
           display: grid;
           place-items: center;
           border-left: 1px solid #e2d4ba;
-          font-size: 20px;
           color: ${GREEN};
+          font-size: 14px;
         }
 
         button {
-          font-family: inherit;
           cursor: pointer;
         }
 
         .photoBtn {
-          height: 62px;
-          border-radius: 16px;
+          height: 54px;
+          border-radius: 14px;
           border: 1px solid #e2d4ba;
           background: #fff8ec;
           color: ${GREEN};
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 10px;
-          padding: 8px 14px;
+          gap: 8px;
+          font-size: 14px;
         }
 
-        .photoBtn span {
-          font-size: 34px;
-        }
-
-        .photoBtn strong {
-          display: block;
-          font-size: 19px;
-        }
-
-        .photoBtn small {
-          display: block;
-          font-size: 13px;
-          color: #6d604f;
+        .photoBtn .icon {
+          font-size: 20px;
         }
 
         .actions {
           display: grid;
           grid-template-columns: 1.4fr 1fr;
-          gap: 14px;
-          margin-top: 18px;
+          gap: 12px;
+          margin-top: 14px;
         }
 
         .aiBtn,
         .manualBtn {
-          min-height: 56px;
-          border-radius: 14px;
-          font-size: 20px;
-          font-weight: 900;
+          min-height: 48px;
+          border-radius: 13px;
+          font-size: 14px;
         }
 
         .aiBtn {
@@ -473,32 +430,27 @@ export default function App() {
 
         .manualBtn {
           background: transparent;
-          border: 2px solid ${GREEN};
+          border: 1px solid ${GREEN};
           color: ${GREEN};
         }
 
         .healthGrid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
-          gap: 16px;
+          gap: 12px;
         }
 
         .healthGrid button {
           border: 1px solid #eadbc1;
           background: #fff8ec;
-          border-radius: 16px;
-          min-height: 112px;
+          border-radius: 14px;
+          min-height: 84px;
           color: ${GREEN};
-          font-weight: 900;
-          font-size: 18px;
+          font-size: 14px;
           display: grid;
           place-items: center;
           align-content: center;
-          gap: 5px;
-        }
-
-        .healthGrid button span {
-          font-size: 38px;
+          gap: 4px;
         }
 
         .healthGrid button.active {
@@ -506,203 +458,157 @@ export default function App() {
           border-color: #8dbb8f;
         }
 
+        .healthIcon {
+          font-size: 24px;
+        }
+
         .daysGrid {
           display: grid;
-          grid-template-columns: repeat(7, 1fr);
-          gap: 12px;
+          grid-template-columns: repeat(7, minmax(0, 1fr));
+          gap: 6px;
         }
 
         .day {
-          min-height: 100px;
-          border-radius: 14px;
+          min-height: 68px;
+          border-radius: 12px;
           border: 1px solid #eadbc1;
           background: #fff7e8;
           display: grid;
           place-items: center;
           align-content: center;
           color: ${GREEN};
-          font-weight: 900;
-        }
-
-        .day b {
-          font-size: 16px;
-        }
-
-        .day span {
-          font-size: 15px;
-        }
-
-        .day strong {
-          font-size: 30px;
-          line-height: 1;
-          margin-top: 5px;
-        }
-
-        .day small {
-          font-size: 15px;
+          font-size: 13px;
+          line-height: 1.1;
         }
 
         .day.active {
-          border: 2px solid ${GREEN};
+          border: 1px solid ${GREEN};
         }
 
         .goalTop {
           display: grid;
-          grid-template-columns: minmax(0, 1fr) 120px;
-          gap: 18px;
+          grid-template-columns: minmax(0, 1fr) 94px;
+          gap: 12px;
           align-items: start;
-          padding-right: 52px;
+          padding-right: 38px;
         }
 
         .goalInput {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 8px;
         }
 
         .goalInput input {
-          width: 105px;
-          height: 48px;
-          border-radius: 13px;
+          width: 82px;
+          height: 38px;
+          border-radius: 10px;
           border: 1px solid #e2d4ba;
           background: white;
-          padding-left: 18px;
-          font-size: 19px;
-        }
-
-        .goalInput span {
-          font-size: 17px;
-          font-weight: 900;
+          padding-left: 12px;
+          font-size: 14px;
         }
 
         .remainingBox {
-          width: 110px;
-          border-radius: 16px;
+          width: 88px;
+          border-radius: 14px;
           background: linear-gradient(135deg, #00663f, #0b5a3b);
           color: white;
-          padding: 12px 8px;
+          padding: 8px 5px;
           text-align: center;
           justify-self: start;
-          transform: translateX(-22px);
-        }
-
-        .remainingBox span {
-          display: block;
-          font-size: 15px;
-          font-weight: 900;
-        }
-
-        .remainingBox strong {
-          display: block;
-          font-size: 31px;
-          line-height: 0.95;
-        }
-
-        .remainingBox b {
-          font-size: 22px;
+          transform: translateX(-26px);
+          display: grid;
+          gap: 1px;
+          font-size: 13px;
+          line-height: 1.05;
         }
 
         .macroCards {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
-          gap: 14px;
-          margin-top: 18px;
+          gap: 8px;
+          margin-top: 14px;
         }
 
         .macroMini {
-          min-height: 108px;
-          border-radius: 16px;
+          min-height: 76px;
+          border-radius: 14px;
           background: #fff8ec;
           border: 1px solid #eadbc1;
-          padding: 12px;
+          padding: 8px 6px;
           display: grid;
-          grid-template-columns: 38px 1fr;
-          column-gap: 8px;
+          grid-template-columns: 24px 1fr;
+          column-gap: 5px;
           align-items: center;
+          font-size: 14px;
+          line-height: 1.1;
         }
 
-        .macroMini span {
+        .macroMini .icon {
           grid-row: 1 / 3;
-          font-size: 28px;
-        }
-
-        .macroMini b {
-          font-size: 18px;
-        }
-
-        .macroMini strong {
-          font-size: 26px;
-          line-height: 1;
+          font-size: 20px;
         }
 
         .macroMini i {
           grid-column: 1 / 3;
-          height: 6px;
+          height: 4px;
           background: #73c56d;
           border-radius: 999px;
-          margin-top: 10px;
+          margin-top: 6px;
         }
 
         .chartsGrid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 16px;
+          gap: 12px;
         }
 
         .macroChart {
           display: grid;
-          grid-template-columns: 145px 1fr;
-          gap: 16px;
+          grid-template-columns: 86px 1fr;
+          gap: 8px;
           align-items: center;
         }
 
         .donut {
-          width: 130px;
-          height: 130px;
+          width: 78px;
+          height: 78px;
           border-radius: 50%;
           background: conic-gradient(#7edb87 0 28%, #4ea1ff 28% 60%, #ffd15a 60% 100%);
           display: grid;
           place-items: center;
           position: relative;
+          font-size: 12px;
         }
 
         .donut::after {
           content: "";
           position: absolute;
-          width: 78px;
-          height: 78px;
+          width: 48px;
+          height: 48px;
           background: #fff8ec;
           border-radius: 50%;
         }
 
-        .donut b,
         .donut span {
           position: relative;
           z-index: 2;
         }
 
-        .donut b {
-          font-size: 19px;
-          margin-top: 16px;
-        }
-
-        .donut span {
-          font-size: 13px;
-          margin-top: -22px;
-        }
-
         .legend p {
           display: grid;
-          grid-template-columns: 16px 1fr 45px;
+          grid-template-columns: 8px 1fr 28px;
           align-items: center;
-          gap: 10px;
-          font-size: 18px;
-          font-weight: 900;
+          gap: 4px;
+          font-size: 13px;
+          margin: 4px 0;
+          line-height: 1.1;
         }
 
         .legend i {
-          width: 14px;
-          height: 14px;
+          width: 7px;
+          height: 7px;
           border-radius: 50%;
           background: #0aa56b;
         }
@@ -718,36 +624,32 @@ export default function App() {
         .bars {
           display: grid;
           grid-template-columns: repeat(7, 1fr);
-          gap: 8px;
+          gap: 3px;
           align-items: end;
         }
 
         .bar {
           text-align: center;
-          font-weight: 900;
           color: ${GREEN};
+          font-size: 12px;
+          line-height: 1.1;
         }
 
         .bar div {
-          height: 98px;
+          height: 56px;
           background: #f1e3ca;
           border-radius: 999px;
-          margin-bottom: 8px;
-        }
-
-        .bar b,
-        .bar span {
-          display: block;
-          font-size: 14px;
+          margin-bottom: 4px;
         }
 
         .mealRow {
           display: grid;
-          grid-template-columns: minmax(0, 1fr) 72px 18px;
-          gap: 10px;
+          grid-template-columns: minmax(0, 1fr) 58px 12px;
+          gap: 4px;
           align-items: center;
-          padding: 10px 54px 10px 4px;
+          padding: 9px 40px 9px 2px;
           border-bottom: 1px solid rgba(110, 80, 40, 0.14);
+          font-size: 14px;
         }
 
         .mealRow:last-child {
@@ -757,59 +659,48 @@ export default function App() {
         .mealRow > div {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 8px;
           min-width: 0;
         }
 
+        .mealRow .icon {
+          font-size: 18px;
+        }
+
         .mealRow span {
-          font-size: 26px;
-        }
-
-        .mealRow b {
-          font-size: 24px;
-          color: ${GREEN};
           white-space: nowrap;
         }
 
-        .mealRow strong {
-          font-size: 19px;
-          color: #1f1b15;
-          white-space: nowrap;
+        .mealRow > span:nth-child(2) {
           text-align: right;
-        }
-
-        .mealRow em {
-          font-style: normal;
-          font-size: 30px;
-          color: #6e6659;
+          color: #1f1b15;
         }
 
         .bottomNav {
           position: sticky;
-          bottom: 12px;
+          bottom: 8px;
           z-index: 20;
-          margin-top: 18px;
-          min-height: 72px;
-          border-radius: 22px;
+          margin-top: 14px;
+          min-height: 58px;
+          border-radius: 18px;
           background: rgba(255, 248, 236, 0.96);
           border: 1px solid rgba(120, 80, 30, 0.12);
           display: grid;
           grid-template-columns: repeat(4, 1fr);
-          box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+          box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
         }
 
         .bottomNav button {
           border: 0;
           background: transparent;
           color: ${GREEN};
-          font-size: 25px;
-          font-weight: 900;
+          font-size: 16px;
         }
 
         .bottomNav span {
           display: block;
-          font-size: 13px;
-          margin-top: 3px;
+          font-size: 10px;
+          margin-top: 2px;
         }
 
         @media (max-width: 760px) {
@@ -819,8 +710,8 @@ export default function App() {
           }
 
           .hero {
-            min-height: 150px;
-            padding: 16px;
+            min-height: 138px;
+            padding: 14px;
             border-radius: 18px;
           }
 
@@ -830,37 +721,29 @@ export default function App() {
           }
 
           .hero h1 {
-            font-size: 29px;
-            margin-top: 10px;
+            font-size: 23px;
+            margin-top: 8px;
           }
 
           .signature {
-            font-size: 22px;
-            margin-bottom: 6px;
+            font-size: 17px;
+            margin-bottom: 5px;
           }
 
           .hero p {
             font-size: 12px;
-            max-width: 230px;
-            line-height: 1.25;
+            max-width: 220px;
           }
 
           .todayBox {
-            width: 76px;
-            height: 88px;
-            border-radius: 14px;
-          }
-
-          .todayBox span {
-            font-size: 11px;
-          }
-
-          .todayBox strong {
-            font-size: 32px;
-          }
-
-          .todayBox b {
+            width: 68px;
+            height: 78px;
+            border-radius: 13px;
             font-size: 12px;
+          }
+
+          .todayBox .big {
+            font-size: 17px;
           }
 
           .card {
@@ -870,183 +753,87 @@ export default function App() {
           }
 
           h2 {
-            font-size: 22px;
-            margin-bottom: 10px;
-            line-height: 1.05;
+            font-size: 18px !important;
+            margin-bottom: 10px !important;
           }
 
           .addGrid {
             grid-template-columns: 1.35fr 1fr;
-            gap: 9px;
+            gap: 8px;
           }
 
           .photoBtn {
             grid-column: 1 / 3;
-            height: 56px;
-            border-radius: 12px;
-          }
-
-          .photoBtn span {
-            font-size: 22px;
-          }
-
-          .photoBtn strong,
-          .photoBtn small,
-          label span,
-          select,
-          input,
-          .weightField b,
-          .aiBtn,
-          .manualBtn,
-          .healthGrid button,
-          .day b,
-          .day span,
-          .day small,
-          .goalInput span,
-          .macroMini b,
-          .legend p,
-          .bar b,
-          .bar span,
-          .mealRow b,
-          .mealRow strong {
-            font-size: 14px;
-          }
-
-          .photoBtn small {
-            font-size: 12px;
-          }
-
-          .field,
-          .weightField {
             height: 42px;
-            border-radius: 12px;
           }
 
-          .field b {
-            font-size: 18px;
-            margin: 0 6px;
-          }
-
-          .weightField input {
-            padding-left: 10px;
-          }
-
-          .weightField b {
-            width: 34px;
+          .field {
+            height: 38px;
           }
 
           .actions {
             gap: 8px;
-            margin-top: 10px;
+            margin-top: 9px;
           }
 
           .aiBtn,
           .manualBtn {
-            min-height: 42px;
-            border-radius: 12px;
-            font-weight: 900;
-          }
-
-          .healthCard {
-            padding: 12px;
+            min-height: 38px;
           }
 
           .healthGrid {
-            grid-template-columns: repeat(4, 1fr);
             gap: 6px;
           }
 
           .healthGrid button {
-            min-height: 64px;
+            min-height: 58px;
             border-radius: 12px;
+            font-size: 12px;
             padding: 4px 2px;
-            gap: 1px;
-            line-height: 1.05;
           }
 
-          .healthGrid button span {
-            font-size: 30px;
+          .healthIcon {
+            font-size: 20px;
           }
 
           .daysGrid {
-            grid-template-columns: repeat(7, minmax(0, 1fr));
             gap: 4px;
           }
 
           .day {
-            min-height: 62px;
+            min-height: 54px;
+            font-size: 11px;
             border-radius: 9px;
             padding: 3px 1px;
           }
 
-          .day strong {
-            font-size: 16px;
-            line-height: 1;
-            margin-top: 2px;
-          }
-
           .goalTop {
-            grid-template-columns: minmax(0, 1fr) 88px;
-            gap: 6px;
-            padding-right: 40px;
-          }
-
-          .goalInput input {
-            width: 72px;
-            height: 36px;
-            border-radius: 10px;
-            padding-left: 10px;
+            grid-template-columns: minmax(0, 1fr) 80px;
+            padding-right: 34px;
           }
 
           .remainingBox {
-            width: 84px;
-            padding: 7px 5px;
-            border-radius: 12px;
-            transform: translateX(-34px);
-          }
-
-          .remainingBox span {
-            font-size: 12px;
-          }
-
-          .remainingBox strong {
-            font-size: 22px;
-          }
-
-          .remainingBox b {
-            font-size: 16px;
+            width: 76px;
+            transform: translateX(-30px);
+            font-size: 11px;
           }
 
           .macroCards {
-            grid-template-columns: repeat(4, 1fr);
             gap: 5px;
-            margin-top: 10px;
           }
 
           .macroMini {
-            min-height: 76px;
-            border-radius: 11px;
-            padding: 6px 4px;
-            grid-template-columns: 20px 1fr;
-            column-gap: 3px;
+            min-height: 62px;
+            font-size: 12px;
+            grid-template-columns: 18px 1fr;
+            padding: 5px 4px;
           }
 
-          .macroMini span {
-            font-size: 20px;
-          }
-
-          .macroMini strong {
-            font-size: 17px;
-            line-height: 1;
-          }
-
-          .macroMini i {
-            height: 4px;
-            margin-top: 5px;
+          .macroMini .icon {
+            font-size: 16px;
           }
 
           .chartsGrid {
-            grid-template-columns: 1fr 1fr;
             gap: 8px;
           }
 
@@ -1055,82 +842,36 @@ export default function App() {
           }
 
           .macroChart {
-            grid-template-columns: 78px 1fr;
-            gap: 6px;
-            align-items: center;
+            grid-template-columns: 62px 1fr;
+            gap: 5px;
           }
 
           .donut {
-            width: 74px;
-            height: 74px;
+            width: 58px;
+            height: 58px;
+            font-size: 10px;
           }
 
           .donut::after {
-            width: 46px;
-            height: 46px;
-          }
-
-          .donut b {
-            font-size: 11px;
-            margin-top: 9px;
-          }
-
-          .donut span {
-            font-size: 8px;
-            margin-top: -15px;
+            width: 36px;
+            height: 36px;
           }
 
           .legend p {
-            grid-template-columns: 8px 1fr 22px;
-            gap: 4px;
-            margin: 4px 0;
-            line-height: 1.1;
+            font-size: 11px;
+            grid-template-columns: 7px 1fr 20px;
           }
 
-          .legend i {
-            width: 8px;
-            height: 8px;
-          }
-
-          .bars {
-            gap: 3px;
+          .bar {
+            font-size: 10px;
           }
 
           .bar div {
-            height: 58px;
-            margin-bottom: 4px;
+            height: 46px;
           }
 
           .mealRow {
-            grid-template-columns: minmax(0, 1fr) 58px 12px;
-            gap: 4px;
-            padding: 8px 44px 8px 2px;
-          }
-
-          .mealRow > div {
-            gap: 8px;
-          }
-
-          .mealRow span {
-            font-size: 22px;
-          }
-
-          .mealRow em {
-            font-size: 22px;
-          }
-
-          .bottomNav {
-            min-height: 62px;
-            border-radius: 18px;
-            bottom: 8px;
-          }
-
-          .bottomNav button {
-            font-size: 20px;
-          }
-
-          .bottomNav span {
-            font-size: 10px;
+            font-size: 14px;
           }
         }
       `}</style>
