@@ -874,6 +874,101 @@ export default function App() {
             font-size: 14px;
           }
         }
+        @media (max-width: 760px) {
+  h2 {
+    font-size: 21px !important;
+    line-height: 1.15 !important;
+  }
+
+  .icon,
+  .healthIcon {
+    font-size: 24px !important;
+  }
+
+  .daysGrid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  .day {
+    min-height: 58px !important;
+    font-size: 13px !important;
+    padding: 5px 2px !important;
+  }
+
+  .macroCards {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .macroMini {
+    min-height: 62px !important;
+    grid-template-columns: 28px 1fr !important;
+    font-size: 14px !important;
+  }
+
+  .macroMini .icon {
+    font-size: 26px !important;
+  }
+
+  .remainingBox {
+    width: 92px !important;
+    font-size: 13px !important;
+    transform: translateX(-22px) !important;
+  }
+
+  .remainingBox span {
+    font-size: 13px !important;
+  }
+
+  .goalInput input {
+    width: 86px !important;
+    font-size: 14px !important;
+  }
+
+  .macroChart {
+    grid-template-columns: 64px 1fr !important;
+  }
+
+  .legend p {
+    grid-template-columns: 7px 1fr 24px !important;
+    font-size: 13px !important;
+    gap: 4px !important;
+  }
+
+  .legend p span,
+  .legend p b {
+    font-size: 13px !important;
+  }
+
+  .bars {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  .bar {
+    font-size: 12px !important;
+  }
+
+  .bar div {
+    height: 38px !important;
+  }
+
+  .mealRow {
+    font-size: 13px !important;
+    padding: 9px 34px 9px 2px !important;
+    grid-template-columns: minmax(0, 1fr) 58px 12px !important;
+  }
+
+  .mealRow .icon {
+    font-size: 20px !important;
+  }
+
+  .healthGrid button {
+    min-height: 64px !important;
+    font-size: 12px !important;
+  }
+}
       `}</style>
     </>
   );
